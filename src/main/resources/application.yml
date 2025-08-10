@@ -1,0 +1,11 @@
+spring:
+  sql:
+    init:
+      mode: always
+  application:
+    name: file-storage
+  datasource:
+    url: jdbc:postgresql://localhost:5432/file_storage
+    password: root
+    username: root
+

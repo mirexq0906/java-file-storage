@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS files;
+CREATE TABLE IF NOT EXISTS files
+(
+    id         SERIAL PRIMARY KEY,
+    name       VARCHAR(255) NOT NULL,
+    parent_id  BIGINT,
+    file_type  VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_id) REFERENCES files (id) ON DELETE CASCADE
+);
