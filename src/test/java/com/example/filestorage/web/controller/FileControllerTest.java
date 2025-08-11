@@ -26,32 +26,19 @@ public class FileControllerTest extends AbstractControllerTest {
 
     @Test
     public void createWithNoParentFile_shouldReturnFile() throws Exception {
-        int countFiles = fileRepository.count();
-        FileDto fileDto = new FileDto();
-        fileDto.setName("test");
-        fileDto.setParentId(null);
-        fileDto.setFileType(FileType.FOLDER);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/file")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(fileDto)))
-                .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("test"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.parentId").value(0))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.fileType").value(FileType.FOLDER.name()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isString())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.updatedAt").isString());
-
-        Assertions.assertEquals(countFiles + 1, fileRepository.count());
+        createFileAndAssert(null, 0);
     }
 
     @Test
     public void createWithParentFile_shouldReturnFile() throws Exception {
+        createFileAndAssert(1L, 1);
+    }
+
+    private void createFileAndAssert(Long parentId, long expectedParentId) throws Exception {
         int countFiles = fileRepository.count();
         FileDto fileDto = new FileDto();
         fileDto.setName("test");
-        fileDto.setParentId(1L);
+        fileDto.setParentId(parentId);
         fileDto.setFileType(FileType.FOLDER);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/file")
@@ -60,7 +47,7 @@ public class FileControllerTest extends AbstractControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("test"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.parentId").value(0))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.parentId").value(expectedParentId))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.fileType").value(FileType.FOLDER.name()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isString())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.updatedAt").isString());
