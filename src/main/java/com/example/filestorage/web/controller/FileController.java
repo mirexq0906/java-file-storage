@@ -6,6 +6,7 @@ import com.example.filestorage.web.mapper.FileMapper;
 import com.example.filestorage.web.response.FileResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,9 +24,9 @@ public class FileController {
         return fileMapper.toFileResponseList(fileService.findFilesInFolder(parentId));
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public FileResponse create(@RequestBody FileDto fileDto) {
+    public FileResponse create(@ModelAttribute FileDto fileDto) {
         return fileMapper.toFileResponse(fileService.create(fileDto));
     }
 

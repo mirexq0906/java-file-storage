@@ -10,7 +10,9 @@ import com.example.filestorage.web.dto.FileDto;
 import com.example.filestorage.web.mapper.FileMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.*;
 import java.util.List;
 
 @Service
@@ -27,24 +29,44 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public File create(FileDto fileDto) {
-        if (fileDto.getParentId() == null) {
-            return createFile(fileDto);
+        validateParent(fileDto);
+
+        if (fileDto.getFileType() == FileType.FILE) {
+            fileDto.setName(fileDto.getFile().getOriginalFilename());
+            storeFileContent(fileDto.getFile());
         }
 
-        File parentFile = fileRepository.findById(fileDto.getParentId()).orElseThrow(
-                () -> new EntityNotFoundException("Parent file not found")
-        );
+        return persistFileEntity(fileDto);
+    }
+
+    private void validateParent(FileDto fileDto) {
+        if (fileDto.getParentId() == null) {
+            return;
+        }
+
+        File parentFile = fileRepository.findById(fileDto.getParentId())
+                .orElseThrow(() -> new EntityNotFoundException("Parent file not found"));
 
         if (parentFile.getType() != FileType.FOLDER) {
             throw new CreateFileException("Parent file is not a folder");
         }
-
-        return createFile(fileDto);
     }
 
-    private File createFile(FileDto fileDto) {
+    private File persistFileEntity(FileDto fileDto) {
         return fileRepository.create(fileMapper.toFile(fileDto));
     }
+
+    private void storeFileContent(MultipartFile file) {
+        java.io.File targetFile = new java.io.File("./files", file.getOriginalFilename());
+
+        try (InputStream inputStream = file.getInputStream();
+             FileOutputStream outputStream = new FileOutputStream(targetFile)) {
+            inputStream.transferTo(outputStream);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store file: " + file.getOriginalFilename(), e);
+        }
+    }
+
 
     @Override
     public void delete(Long id) {
