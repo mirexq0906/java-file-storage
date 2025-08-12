@@ -9,6 +9,7 @@ import com.example.filestorage.service.FileService;
 import com.example.filestorage.web.dto.FileDto;
 import com.example.filestorage.web.mapper.FileMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +22,9 @@ public class FileServiceImpl implements FileService {
 
     private final FileRepository fileRepository;
     private final FileMapper fileMapper;
+
+    @Value("${app.upload.dir}")
+    private String uploadDir;
 
     @Override
     public List<File> findFilesInFolder(Long id) {
@@ -57,7 +61,7 @@ public class FileServiceImpl implements FileService {
     }
 
     private void storeFileContent(MultipartFile file) {
-        java.io.File targetFile = new java.io.File("./files", file.getOriginalFilename());
+        java.io.File targetFile = new java.io.File(uploadDir, file.getOriginalFilename());
 
         try (InputStream inputStream = file.getInputStream();
              FileOutputStream outputStream = new FileOutputStream(targetFile)) {

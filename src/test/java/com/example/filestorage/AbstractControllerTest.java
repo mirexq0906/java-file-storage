@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +14,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.nio.file.Path;
 
 @SpringBootTest
 @Testcontainers
@@ -26,6 +29,9 @@ public class AbstractControllerTest {
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @TempDir
+    public static Path tempDir;
 
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
             "postgres:12.3"
@@ -46,6 +52,7 @@ public class AbstractControllerTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("app.upload.dir", () -> tempDir.toString());
     }
 
 }

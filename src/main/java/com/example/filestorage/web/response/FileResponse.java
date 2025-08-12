@@ -12,7 +12,7 @@ public class FileResponse {
     private String name;
     private Long parentId;
     private FileType fileType;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String createdAt;
+    private String updatedAt;
 
 }

@@ -29,8 +29,8 @@ public class FileMapper {
         fileResponse.setName(file.getName());
         fileResponse.setParentId(file.getParentId());
         fileResponse.setFileType(file.getType());
-        fileResponse.setCreatedAt(file.getCreatedAt());
-        fileResponse.setUpdatedAt(file.getUpdatedAt());
+        fileResponse.setCreatedAt(file.getCreatedAt().toString());
+        fileResponse.setUpdatedAt(file.getUpdatedAt().toString());
         return fileResponse;
     }
 

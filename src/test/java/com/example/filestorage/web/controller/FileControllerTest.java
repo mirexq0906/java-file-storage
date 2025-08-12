@@ -3,13 +3,16 @@ package com.example.filestorage.web.controller;
 import com.example.filestorage.AbstractControllerTest;
 import com.example.filestorage.entity.FileType;
 import com.example.filestorage.repository.FileRepository;
-import com.example.filestorage.web.dto.FileDto;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+import java.nio.file.Path;
 
 public class FileControllerTest extends AbstractControllerTest {
 
@@ -25,30 +28,41 @@ public class FileControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void createWithNoParentFile_shouldReturnFile() throws Exception {
-        createFileAndAssert(null, 0);
+    public void createWithNoParentFolder_shouldReturnFolder() throws Exception {
+        createFileAndAssert(FileType.FOLDER, null, 0);
     }
 
     @Test
-    public void createWithParentFile_shouldReturnFile() throws Exception {
-        createFileAndAssert(1L, 1);
+    public void createWithParentFolder_shouldReturnFolder() throws Exception {
+        createFileAndAssert(FileType.FOLDER, 1L, 1);
     }
 
-    private void createFileAndAssert(Long parentId, long expectedParentId) throws Exception {
-        int countFiles = fileRepository.count();
-        FileDto fileDto = new FileDto();
-        fileDto.setName("test");
-        fileDto.setParentId(parentId);
-        fileDto.setFileType(FileType.FOLDER);
+    @Test
+    public void createFile_shouldReturnFile() throws Exception {
+        createFileAndAssert(FileType.FILE, 1L, 1);
+    }
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/file")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(fileDto)))
+    private void createFileAndAssert(FileType fileType, Long parentId, long expectedParentId) throws Exception {
+        int countFiles = fileRepository.count();
+        MockMultipartFile file = new MockMultipartFile("file", "test.txt", "text/plain", "test".getBytes());
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.multipart(
+                                        HttpMethod.POST,
+                                        "/api/file"
+                                )
+                                .file(file)
+                                .param("name", "test")
+                                .param("parentId", String.valueOf(parentId))
+                                .param("fileType", String.valueOf(fileType))
+                )
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("test"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value(
+                        FileType.FOLDER == fileType ? "test" : file.getOriginalFilename()
+                ))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.parentId").value(expectedParentId))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.fileType").value(FileType.FOLDER.name()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.fileType").value(fileType.name()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.createdAt").isString())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.updatedAt").isString());
 
